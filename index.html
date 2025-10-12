@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConvertLi</title>
+<link rel="icon" href="favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-color: #f5f5f5;
+    --text-color: #222;
+    --accent-color: #2196F3;
+    --input-bg: #fff;
+    --card-bg: #fff;
+    --shadow: rgba(0,0,0,0.1) 0px 2px 8px;
+  }
+  [data-theme="dark"] {
+    --bg-color: #1e1e1e;
+    --text-color: #f5f5f5;
+    --accent-color: #4CAF50;
+    --input-bg: #2c2c2c;
+    --card-bg: #2a2a2a;
+    --shadow: rgba(0,0,0,0.5) 0px 2px 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+  body { background: var(--bg-color); color: var(--text-color); }
+  header { display: flex; align-items:center; justify-content:space-between; padding: 1rem 2rem; background: var(--card-bg); box-shadow: var(--shadow); position: sticky; top: 0; z-index:100; }
+  header img { height:40px; }
+  nav a { margin-left:1.5rem; text-decoration:none; color: var(--text-color); font-weight:600; }
+  .hero { text-align:center; padding:4rem 1rem; }
+  .hero h1 { font-size:2.5rem; margin-bottom:1rem; }
+  .hero p { font-size:1.2rem; color: #555; }
+  .section { max-width:900px; margin:2rem auto; padding:2rem; background: var(--card-bg); box-shadow: var(--shadow); border-radius:12px; }
+  .section h2 { margin-bottom:1rem; color: var(--accent-color); }
+  input, select, button { padding:0.7rem 1rem; margin:0.3rem 0; border-radius:8px; border:1px solid #ccc; background:var(--input-bg); color:var(--text-color); }
+  button { background: var(--accent-color); color:#fff; border:none; cursor:pointer; transition:0.2s; }
+  button:hover { opacity:0.85; }
+  .dark-toggle { cursor:pointer; padding:0.5rem 1rem; border-radius:8px; background: var(--accent-color); color:#fff; border:none; }
+</style>
+</head>
+<body data-theme="light">
+
+<header>
+  <img src="logo.png" alt="ConvertLi Logo">
+  <nav>
+    <a href="#currency">Currency</a>
+    <a href="#time">Time</a>
+    <a href="#unix">UNIX</a>
+    <a href="#distance">Distance</a>
+    <a href="#calculator">Calculator</a>
+  </nav>
+  <button class="dark-toggle">🌙</button>
+</header>
+
+<section class="hero">
+  <h1>ConvertLi</h1>
+  <p>Convert anything to anything. Fast, clean, and modern.</p>
+</section>
+
+<!-- Currency -->
+<section id="currency" class="section">
+  <h2>Currency Converter</h2>
+  <input type="number" id="currency-input" placeholder="Amount">
+  <select id="currency-from">
+    <option value="EUR">EUR</option>
+    <option value="USD">USD</option>
+    <option value="GBP">GBP</option>
+  </select>
+  →
+  <select id="currency-to">
+    <option value="USD">USD</option>
+    <option value="EUR">EUR</option>
+    <option value="GBP">GBP</option>
+  </select>
+  <button onclick="convertCurrency()">Convert</button>
+  <p id="currency-result"></p>
+</section>
+
+<!-- Time -->
+<section id="time" class="section">
+  <h2>Time Converter</h2>
+  <input type="number" id="time-input" placeholder="Enter value">
+  <select id="time-from">
+    <option value="seconds">Seconds</option>
+    <option value="minutes">Minutes</option>
+    <option value="hours">Hours</option>
+  </select>
+  →
+  <select id="time-to">
+    <option value="seconds">Seconds</option>
+    <option value="minutes">Minutes</option>
+    <option value="hours">Hours</option>
+    <option value="days">Days</option>
+  </select>
+  <button onclick="convertTime()">Convert</button>
+  <p id="time-result"></p>
+</section>
+
+<!-- UNIX -->
+<section id="unix" class="section">
+  <h2>UNIX Timestamp Converter</h2>
+  <input type="number" id="unix-input" placeholder="Enter UNIX timestamp">
+  <button onclick="convertUnix()">Convert to UTC</button>
+  <p id="unix-result"></p>
+</section>
+
+<!-- Distance -->
+<section id="distance" class="section">
+  <h2>Distance Converter</h2>
+  <input type="number" id="distance-input" placeholder="Enter value">
+  <select id="distance-from">
+    <option value="km">Kilometers</option>
+    <option value="miles">Miles</option>
+    <option value="m">Meters</option>
+  </select>
+  →
+  <select id="distance-to">
+    <option value="km">Kilometers</option>
+    <option value="miles">Miles</option>
+    <option value="m">Meters</option>
+  </select>
+  <button onclick="convertDistance()">Convert</button>
+  <p id="distance-result"></p>
+</section>
+
+<!-- Calculator -->
+<section id="calculator" class="section">
+  <h2>Calculator</h2>
+  <input type="text" id="calc-input" placeholder="Type expression (e.g., 5*3+2)">
+  <button onclick="calculate()">Calculate</button>
+  <p id="calc-result"></p>
+</section>
+
+<script>
+  const toggleBtn = document.querySelector('.dark-toggle');
+  toggleBtn.onclick = () => {
+    const theme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    document.body.setAttribute('data-theme', theme);
+    toggleBtn.textContent = theme==='light' ? '🌙' : '☀️';
+  }
+
+  // Placeholder conversion functions
+  function convertCurrency(){
+    const val = Number(document.getElementById('currency-input').value);
+    const from = document.getElementById('currency-from').value;
+    const to = document.getElementById('currency-to').value;
+    // Example: hardcoded rates for demo
+    const rates = { EUR:{USD:1.1, GBP:0.88}, USD:{EUR:0.91, GBP:0.8}, GBP:{EUR:1.14, USD:1.25} };
+    const result = val * (rates[from][to] || 1);
+    document.getElementById('currency-result').textContent = `${val} ${from} = ${result.toFixed(2)} ${to}`;
+  }
+
+  function convertTime(){
+    const val = Number(document.getElementById('time-input').value);
+    const from = document.getElementById('time-from').value;
+    const to = document.getElementById('time-to').value;
+    const map = { seconds:1, minutes:60, hours:3600, days:86400 };
+    const result = val * map[from] / map[to];
+    document.getElementById('time-result').textContent = `${val} ${from} = ${result} ${to}`;
+  }
+
+  function convertUnix(){
+    const ts = Number(document.getElementById('unix-input').value);
+    const date = new Date(ts*1000);
+    document.getElementById('unix-result').textContent = `UTC: ${date.toUTCString()} | Local: ${date.toLocaleString()}`;
+  }
+
+  function convertDistance(){
+    const val = Number(document.getElementById('distance-input').value);
+    const from = document.getElementById('distance-from').value;
+    const to = document.getElementById('distance-to').value;
+    const km = from==='km'?val:from==='miles'?val*1.60934:val/1000;
+    let result = km;
+    if(to==='km') result = km;
+    if(to==='miles') result = km/1.60934;
+    if(to==='m') result = km*1000;
+    document.getElementById('distance-result').textContent = `${val} ${from} = ${result.toFixed(2)} ${to}`;
+  }
+
+  function calculate(){
+    try {
+      const expr = document.getElementById('calc-input').value;
+      const result = eval(expr);
+      document.getElementById('calc-result').textContent = `Result: ${result}`;
+    } catch(e){
+      document.getElementById('calc-result').textContent = `Invalid expression`;
+    }
+  }
+</script>
+
+</body>
+</html>
