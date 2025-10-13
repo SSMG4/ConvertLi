@@ -7,3 +7,5 @@ function convertWeight(val, from, to){
   const inKg = val*weightMap[from];
   return inKg/weightMap[to];
 }
+
+window.convertWeight = convertWeight;
