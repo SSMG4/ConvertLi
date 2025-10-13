@@ -7,3 +7,5 @@ function convertData(val, from, to){
   const inBytes = val*dataMap[from];
   return inBytes/dataMap[to];
 }
+
+window.convertData = convertData;
