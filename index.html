@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>ConvertLi</title>
-<link rel="icon" href="favicon.ico">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="icon" href="favicon.ico" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+<!-- Chart.js for currency graphs -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body data-theme="light">
-
 <header>
-  <img src="logo.png" alt="ConvertLi Logo" class="logo" style="height:50px;">
+  <img src="logo.png" alt="ConvertLi Logo" class="logo" style="height:50px;" />
   <nav>
     <a href="#currency">Currency</a>
     <a href="#time">Time</a>
@@ -22,6 +23,7 @@
     <a href="#weight">Weight</a>
     <a href="#data">Data</a>
     <a href="#calculator">Calculator</a>
+    <a href="#formulas">Formulas</a>
   </nav>
   <button class="dark-toggle">🌙</button>
 </header>
@@ -35,11 +37,14 @@
 <section id="currency" class="section">
   <h2>Currency Converter</h2>
   <div class="converter-card">
-    <input type="number" id="currency-input" placeholder="Amount">
+    <input type="number" id="currency-input" placeholder="Amount" />
     <select id="currency-from"></select> →
     <select id="currency-to"></select>
     <p class="result" id="currency-result"></p>
-    <p class="formula" id="currency-formula"></p>
+    <!-- Chart container -->
+    <div style="width:100%;max-width:700px;margin-top:1rem;">
+      <canvas id="currency-chart" height="160"></canvas>
+    </div>
   </div>
 </section>
 
@@ -47,11 +52,10 @@
 <section id="time" class="section">
   <h2>Time Converter</h2>
   <div class="converter-card">
-    <input type="number" id="time-input" placeholder="Value">
+    <input type="number" id="time-input" placeholder="Value" />
     <select id="time-from"></select> →
     <select id="time-to"></select>
     <p class="result" id="time-result"></p>
-    <p class="formula" id="time-formula"></p>
   </div>
 </section>
 
@@ -59,9 +63,15 @@
 <section id="unix" class="section">
   <h2>UNIX Timestamp Converter</h2>
   <div class="converter-card">
-    <input type="number" id="unix-input" placeholder="UNIX Timestamp">
+    <input type="number" id="unix-input" placeholder="UNIX Timestamp (seconds)" />
+    <button id="unix-start-counter">Start Counter</button>
+    <button id="unix-stop-counter">Stop</button>
+    <button id="unix-copy-btn">Copy</button>
+    <label style="display:inline-flex;align-items:center;gap:0.5rem;margin-left:0.5rem;">
+      <input type="checkbox" id="unix-ms-toggle" /> Milliseconds
+    </label>
     <p class="result" id="unix-result"></p>
-    <input type="datetime-local" id="utc-input">
+    <input type="datetime-local" id="utc-input" />
     <p class="result" id="utc-result"></p>
   </div>
 </section>
@@ -70,11 +80,10 @@
 <section id="distance" class="section">
   <h2>Distance Converter</h2>
   <div class="converter-card">
-    <input type="number" id="distance-input" placeholder="Value">
+    <input type="number" id="distance-input" placeholder="Value" />
     <select id="distance-from"></select> →
     <select id="distance-to"></select>
     <p class="result" id="distance-result"></p>
-    <p class="formula" id="distance-formula"></p>
   </div>
 </section>
 
@@ -82,7 +91,7 @@
 <section id="temperature" class="section">
   <h2>Temperature Converter</h2>
   <div class="converter-card">
-    <input type="number" id="temp-input" placeholder="Value">
+    <input type="number" id="temp-input" placeholder="Value" />
     <select id="temp-from">
       <option value="C">°C</option>
       <option value="F">°F</option>
@@ -96,7 +105,6 @@
       <option value="R">°R</option>
     </select>
     <p class="result" id="temp-result"></p>
-    <p class="formula" id="temp-formula"></p>
   </div>
 </section>
 
@@ -104,7 +112,7 @@
 <section id="speed" class="section">
   <h2>Speed Converter</h2>
   <div class="converter-card">
-    <input type="number" id="speed-input" placeholder="Value">
+    <input type="number" id="speed-input" placeholder="Value" />
     <select id="speed-from">
       <option>m/s</option><option>km/h</option><option>mph</option><option>ft/s</option><option>knots</option>
     </select> →
@@ -112,7 +120,6 @@
       <option>m/s</option><option>km/h</option><option>mph</option><option>ft/s</option><option>knots</option>
     </select>
     <p class="result" id="speed-result"></p>
-    <p class="formula" id="speed-formula"></p>
   </div>
 </section>
 
@@ -120,7 +127,7 @@
 <section id="weight" class="section">
   <h2>Weight Converter</h2>
   <div class="converter-card">
-    <input type="number" id="weight-input" placeholder="Value">
+    <input type="number" id="weight-input" placeholder="Value" />
     <select id="weight-from">
       <option>mg</option><option>g</option><option>kg</option><option>t</option><option>lb</option><option>oz</option>
     </select> →
@@ -128,7 +135,6 @@
       <option>mg</option><option>g</option><option>kg</option><option>t</option><option>lb</option><option>oz</option>
     </select>
     <p class="result" id="weight-result"></p>
-    <p class="formula" id="weight-formula"></p>
   </div>
 </section>
 
@@ -136,7 +142,7 @@
 <section id="data" class="section">
   <h2>Data Size Converter</h2>
   <div class="converter-card">
-    <input type="number" id="data-input" placeholder="Value">
+    <input type="number" id="data-input" placeholder="Value" />
     <select id="data-from">
       <option>B</option><option>KB</option><option>MB</option><option>GB</option><option>TB</option><option>PB</option>
     </select> →
@@ -144,16 +150,36 @@
       <option>B</option><option>KB</option><option>MB</option><option>GB</option><option>TB</option><option>PB</option>
     </select>
     <p class="result" id="data-result"></p>
-    <p class="formula" id="data-formula"></p>
   </div>
 </section>
 
 <!-- CALCULATOR -->
 <section id="calculator" class="section">
   <h2>Scientific Calculator</h2>
-  <div class="converter-card">
-    <input type="text" id="calc-input" placeholder="Expression or number">
-    <p class="result" id="calc-result"></p>
+  <div class="converter-card" style="flex-direction:column;gap:1rem;">
+    <div style="display:flex;gap:0.5rem;align-items:center;">
+      <input type="text" id="calc-display" placeholder="0" readonly style="flex:1;padding:0.7rem 1rem;border-radius:8px;" />
+      <button id="calc-clear">C</button>
+      <button id="calc-back">⌫</button>
+    </div>
+
+    <div id="calc-buttons" style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.4rem;">
+      <!-- Row: numbers, operators, functions -->
+      <!-- Numbers -->
+      <button data-value="7">7</button><button data-value="8">8</button><button data-value="9">9</button><button data-value="/"">/</button><button data-action="sqrt">sqrt</button>
+      <button data-value="4">4</button><button data-value="5">5</button><button data-value="6">6</button><button data-value="*">*</button><button data-action="pow">pow</button>
+      <button data-value="1">1</button><button data-value="2">2</button><button data-value="3">3</button><button data-value="-">-</button><button data-action="gcd">gcd</button>
+      <button data-value="0">0</button><button data-value=".">.</button><button data-value="(">(</button><button data-value=")">)</button><button data-action="lcm">lcm</button>
+      <button data-value="%">%</button><button style="grid-column:span 3;" id="calc-equals">=</button><button data-value="+">+</button>
+    </div>
+  </div>
+</section>
+
+<!-- FORMULAS (single page for all formulas) -->
+<section id="formulas" class="section">
+  <h2>Formulas & Reference</h2>
+  <div id="formulas-content">
+    <!-- populated by formulas.js -->
   </div>
 </section>
 
@@ -166,6 +192,7 @@
 <script src="js/speed.js"></script>
 <script src="js/weight.js"></script>
 <script src="js/data.js"></script>
+<script src="js/formulas.js"></script>
 <script src="js/calculator.js"></script>
 </body>
 </html>
