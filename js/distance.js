@@ -14,10 +14,16 @@ function convertDistance(){
   const val = Number(document.getElementById('distance-input').value);
   const from = distanceFrom.value;
   const to = distanceTo.value;
-  if(isNaN(val)) return document.getElementById('distance-result').textContent='Invalid input';
+  const resEl = document.getElementById('distance-result');
+  if(isNaN(val)) {
+    resEl.textContent='Invalid input';
+    resEl.classList.remove('show');
+    return;
+  }
   const meters = val * distanceMap[from];
   const result = meters / distanceMap[to];
-  document.getElementById('distance-result').textContent=`${val} ${from} = ${result} ${to}`;
-  document.getElementById('distance-result').classList.add('show');
-  document.getElementById('distance-formula').textContent=`Formula: value_in_${from} * ${distanceMap[from]} / ${distanceMap[to]}`;
+  resEl.textContent=`${val} ${from} = ${result} ${to}`;
+  resEl.classList.add('show');
 }
+
+window.convertDistance = convertDistance;
