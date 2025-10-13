@@ -11,3 +11,5 @@ function convertSpeed(val, from, to){
   const inMs = val*speedMap[from];
   return inMs / speedMap[to];
 }
+
+window.convertSpeed = convertSpeed;
