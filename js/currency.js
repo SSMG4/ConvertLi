@@ -4,6 +4,10 @@
 const currencyFrom = document.getElementById('currency-from');
 const currencyTo = document.getElementById('currency-to');
 const currencyResultEl = document.getElementById('currency-result');
+const currencyStatusEl = document.getElementById('currency-status');
+const currencyChartEl = document.getElementById('currency-chart');
+const currencyChartMessageEl = document.getElementById('currency-chart-message');
+
 let currencyRates = {};
 let currencySymbols = [];
 let currencyReady = false;
@@ -36,24 +40,26 @@ async function fetchCurrencies() {
   }
 
   // populate selects
-  currencyFrom.innerHTML = '';
-  currencyTo.innerHTML = '';
-  currencySymbols.forEach(s => {
-    const optA = document.createElement('option');
-    optA.value = s;
-    optA.textContent = s;
-    currencyFrom.appendChild(optA);
-    const optB = document.createElement('option');
-    optB.value = s;
-    optB.textContent = s;
-    currencyTo.appendChild(optB);
-  });
+  if (currencyFrom && currencyTo) {
+    currencyFrom.innerHTML = '';
+    currencyTo.innerHTML = '';
+    currencySymbols.forEach(s => {
+      const optA = document.createElement('option');
+      optA.value = s;
+      optA.textContent = s;
+      currencyFrom.appendChild(optA);
+      const optB = document.createElement('option');
+      optB.value = s;
+      optB.textContent = s;
+      currencyTo.appendChild(optB);
+    });
 
-  // sensible defaults
-  if (currencySymbols.includes('USD')) currencyFrom.value = 'USD';
-  else currencyFrom.selectedIndex = 0;
-  if (currencySymbols.includes('EUR')) currencyTo.value = 'EUR';
-  else currencyTo.selectedIndex = currencySymbols.length > 1 ? 1 : 0;
+    // sensible defaults
+    if (currencySymbols.includes('USD')) currencyFrom.value = 'USD';
+    else currencyFrom.selectedIndex = 0;
+    if (currencySymbols.includes('EUR')) currencyTo.value = 'EUR';
+    else currencyTo.selectedIndex = currencySymbols.length > 1 ? 1 : 0;
+  }
 
   await fetchRates();
 }
@@ -66,15 +72,20 @@ async function fetchRates() {
       currencyRates[s] = 1;
     });
     currencyReady = false;
+    if (currencyStatusEl) {
+      currencyStatusEl.textContent = 'Live rates unavailable — using fallback rates';
+    }
     console.warn('Could not fetch live rates; using fallback rates.');
     return;
   }
   currencyRates = data.rates;
   currencyReady = true;
+  if (currencyStatusEl) currencyStatusEl.textContent = '';
 }
 
 // Convert and update UI
 function convertCurrency() {
+  if (!currencyResultEl || !currencyFrom || !currencyTo) return;
   const input = document.getElementById('currency-input').value;
   const val = Number(input);
   const from = currencyFrom.value;
@@ -95,13 +106,13 @@ function convertCurrency() {
   const fromRate = currencyRates[from] || 1;
   const toRate = currencyRates[to] || 1;
   const result = (val / fromRate) * toRate;
-  document.getElementById('currency-result').textContent = `${val} ${from} = ${result.toFixed(4)} ${to}`;
-  document.getElementById('currency-result').classList.add('show');
+  currencyResultEl.textContent = `${val} ${from} = ${result.toFixed(4)} ${to}`;
+  currencyResultEl.classList.add('show');
 }
 
 // Historical data & chart (last 5 years by year points)
-let historyAbort = null;
 async function fetchCurrencyHistory() {
+  if (!currencyFrom || !currencyTo || !currencyChartEl || !currencyChartMessageEl) return;
   const from = currencyFrom.value;
   const to = currencyTo.value;
   if (!from || !to) return;
@@ -115,11 +126,10 @@ async function fetchCurrencyHistory() {
   }
   const start = years[0].toISOString().slice(0, 10);
   const end = years[years.length - 1].toISOString().slice(0, 10);
-  // Query timeseries endpoint
   const url = `https://api.exchangerate.host/timeseries?start_date=${start}&end_date=${end}&base=${from}&symbols=${to}`;
   const data = await safeFetch(url, 10000);
   if (!data || !data.rates) {
-    renderCurrencyChart([], from, to);
+    renderCurrencyChart(null, from, to);
     return;
   }
 
@@ -129,13 +139,10 @@ async function fetchCurrencyHistory() {
   for (const d of years) {
     const k = d.toISOString().slice(0, 10);
     labels.push(d.getFullYear().toString());
-    // find closest available day <= target day
     let val = null;
-    // If exact date exists:
     if (data.rates[k] && data.rates[k][to] !== undefined) {
       val = data.rates[k][to];
     } else {
-      // fallback: scan backward up to 10 days
       for (let back = 1; back <= 10; back++) {
         const dt = new Date(d);
         dt.setDate(dt.getDate() - back);
@@ -152,14 +159,21 @@ async function fetchCurrencyHistory() {
   renderCurrencyChart({ labels, values }, from, to);
 }
 
-function renderCurrencyChart(payloadOrEmpty, from, to) {
-  let labels = [];
-  let values = [];
-  if (payloadOrEmpty.labels) {
-    labels = payloadOrEmpty.labels;
-    values = payloadOrEmpty.values;
+function renderCurrencyChart(payload, from, to) {
+  // If payload is null or has no labels -> show message and hide chart
+  if (!currencyChartEl || !currencyChartMessageEl) return;
+  if (!payload || !payload.labels || payload.labels.length === 0 || payload.values.every(v => v === null)) {
+    currencyChartEl.style.display = 'none';
+    currencyChartMessageEl.style.display = 'block';
+    currencyChartMessageEl.textContent = 'Historical data unavailable';
+    if (currencyChart) { currencyChart.destroy(); currencyChart = null; }
+    return;
   }
-  const ctx = document.getElementById('currency-chart').getContext('2d');
+
+  currencyChartMessageEl.style.display = 'none';
+  currencyChartEl.style.display = 'block';
+
+  const ctx = currencyChartEl.getContext('2d');
   if (currencyChart) {
     currencyChart.destroy();
     currencyChart = null;
@@ -167,12 +181,12 @@ function renderCurrencyChart(payloadOrEmpty, from, to) {
   currencyChart = new Chart(ctx, {
     type: 'line',
     data: {
-      labels,
+      labels: payload.labels,
       datasets: [{
         label: `${to} per ${from} (yearly)`,
-        data: values,
-        borderColor: '#2196F3',
-        backgroundColor: 'rgba(33,150,243,0.1)',
+        data: payload.values,
+        borderColor: 'var(--accent)',
+        backgroundColor: 'rgba(33,150,243,0.12)',
         tension: 0.2,
         pointRadius: 4
       }]
@@ -195,7 +209,6 @@ window.fetchCurrencyHistory = fetchCurrencyHistory;
 
 // Initialize
 fetchCurrencies().then(() => {
-  // initial conversions + chart
   convertCurrency();
   fetchCurrencyHistory();
 }).catch(err => {
