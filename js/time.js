@@ -13,19 +13,32 @@ const timeMap = {
 // Populate select options
 const timeFrom = document.getElementById('time-from');
 const timeTo = document.getElementById('time-to');
-Object.keys(timeMap).forEach(u=>{
-  timeFrom.innerHTML += `<option value="${u}">${u}</option>`;
-  timeTo.innerHTML += `<option value="${u}">${u}</option>`;
-});
+if (timeFrom && timeTo) {
+  Object.keys(timeMap).forEach(u=>{
+    timeFrom.innerHTML += `<option value="${u}">${u}</option>`;
+    timeTo.innerHTML += `<option value="${u}">${u}</option>`;
+  });
+}
+
+const timeInputEl = document.getElementById('time-input');
+const timeResultEl = document.getElementById('time-result');
 
 function convertTime(){
-  const val = Number(document.getElementById('time-input').value);
+  // Guard for missing DOM elements
+  if (!timeInputEl || !timeResultEl || !timeFrom || !timeTo) return;
+
+  const val = Number(timeInputEl.value);
   const from = timeFrom.value;
   const to = timeTo.value;
-  if(isNaN(val)) return document.getElementById('time-result').textContent='Invalid input';
-  const seconds = val * timeMap[from];
-  const result = seconds / timeMap[to];
-  document.getElementById('time-result').textContent=`${val} ${from} = ${result} ${to}`;
-  document.getElementById('time-result').classList.add('show');
-  document.getElementById('time-formula').textContent=`Formula: value_in_${from} * ${timeMap[from]} / ${timeMap[to]}`;
+  if(isNaN(val)) {
+    timeResultEl.textContent='Invalid input';
+    timeResultEl.classList.remove('show');
+    return;
+  }
+  const seconds = val * (timeMap[from] || 1);
+  const result = seconds / (timeMap[to] || 1);
+  timeResultEl.textContent=`${val} ${from} = ${result} ${to}`;
+  timeResultEl.classList.add('show');
 }
+
+window.convertTime = convertTime;
