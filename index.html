@@ -41,9 +41,11 @@
     <select id="currency-from"></select> →
     <select id="currency-to"></select>
     <p class="result" id="currency-result"></p>
-    <!-- Chart container -->
+    <p class="status" id="currency-status" aria-live="polite"></p>
+    <!-- Chart container + fallback message -->
     <div style="width:100%;max-width:700px;margin-top:1rem;">
-      <canvas id="currency-chart" height="160"></canvas>
+      <canvas id="currency-chart" height="160" style="display:block;"></canvas>
+      <p id="currency-chart-message" style="display:none;color:var(--text-color);opacity:0.8;margin-top:0.5rem;">Historical data unavailable</p>
     </div>
   </div>
 </section>
@@ -164,8 +166,7 @@
     </div>
 
     <div id="calc-buttons" style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.4rem;">
-      <!-- Row: numbers, operators, functions -->
-      <!-- Numbers -->
+      <!-- Basic keypad + some functions. More functions can be added with mathjs. -->
       <button data-value="7">7</button><button data-value="8">8</button><button data-value="9">9</button><button data-value="/"">/</button><button data-action="sqrt">sqrt</button>
       <button data-value="4">4</button><button data-value="5">5</button><button data-value="6">6</button><button data-value="*">*</button><button data-action="pow">pow</button>
       <button data-value="1">1</button><button data-value="2">2</button><button data-value="3">3</button><button data-value="-">-</button><button data-action="gcd">gcd</button>
