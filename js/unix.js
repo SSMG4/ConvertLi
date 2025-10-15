@@ -11,31 +11,37 @@ let unixInterval = null;
 let baseTs = null; // in seconds
 
 function showUnix(tsSeconds) {
+  if (!unixResultEl) return;
   const date = new Date(tsSeconds * 1000);
   unixResultEl.textContent = `UTC: ${date.toUTCString()} | Local: ${date.toLocaleString()}`;
   unixResultEl.classList.add('show');
 }
 
 function convertUnix(){
+  if (!unixInput || !unixResultEl) return;
   const ts = Number(unixInput.value);
   if(isNaN(ts)) {
     unixResultEl.textContent='Invalid UNIX';
     unixResultEl.classList.remove('show');
+    stopUnixCounter();
     return;
   }
   baseTs = Math.floor(ts);
   showUnix(baseTs);
+  // Auto-start the live counter when a valid value is entered
+  startUnixCounter();
 }
 
 function convertUTCtoUnix(){
   const utcVal = utcInput.value; // format: yyyy-mm-ddThh:mm
-  if(!utcVal) return;
+  if(!utcVal || !utcResultEl) return;
   const ts = Math.floor(Date.parse(utcVal)/1000);
   utcResultEl.textContent=`UNIX: ${ts}`;
   utcResultEl.classList.add('show');
 }
 
 function startUnixCounter(){
+  if (!unixInput || !unixResultEl) return;
   const tsRaw = Number(unixInput.value);
   if (isNaN(tsRaw)) return;
   baseTs = Math.floor(tsRaw);
@@ -57,9 +63,8 @@ function stopUnixCounter(){
 
 msToggle.addEventListener('change', () => {
   const tsRaw = Number(unixInput.value);
-  if (isNaN(tsRaw)) return;
+  if (isNaN(tsRaw) || !unixResultEl) return;
   if (msToggle.checked) {
-    // show milliseconds exact
     const msVal = tsRaw * 1000;
     unixResultEl.textContent = `Exact (ms): ${msVal}`;
     unixResultEl.classList.add('show');
@@ -85,8 +90,8 @@ startBtn.addEventListener('click', startUnixCounter);
 stopBtn.addEventListener('click', stopUnixCounter);
 
 // Listeners to update displays
-unixInput.addEventListener('input', convertUnix);
-utcInput.addEventListener('input', convertUTCtoUnix);
+if (unixInput) unixInput.addEventListener('input', convertUnix);
+if (utcInput) utcInput.addEventListener('input', convertUTCtoUnix);
 
 window.convertUnix = convertUnix;
 window.convertUTCtoUnix = convertUTCtoUnix;
