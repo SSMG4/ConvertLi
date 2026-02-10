@@ -3,29 +3,32 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>ConvertLi</title>
+<title>ConvertLi - Universal Converter</title>
+<meta name="description" content="Convert anything to anything instantly - currency, time, distance, temperature, and more. Fast, modern, mobile-friendly converter." />
 <link rel="icon" href="favicon.ico" />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
 <!-- Chart.js for currency graphs -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body data-theme="light">
 <header>
-  <img src="logo.png" alt="ConvertLi Logo" class="logo" style="height:50px;" />
+  <img src="logo.png" alt="ConvertLi Logo" class="logo" />
   <nav>
-    <a href="#currency">Currency</a>
-    <a href="#time">Time</a>
-    <a href="#unix">UNIX</a>
-    <a href="#distance">Distance</a>
-    <a href="#temperature">Temp</a>
-    <a href="#speed">Speed</a>
-    <a href="#weight">Weight</a>
-    <a href="#data">Data</a>
-    <a href="#calculator">Calculator</a>
-    <a href="#formulas">Formulas</a>
+    <a href="#currency">💱 Currency</a>
+    <a href="#time">⏰ Time</a>
+    <a href="#unix">🕐 UNIX</a>
+    <a href="#distance">📏 Distance</a>
+    <a href="#temperature">🌡️ Temp</a>
+    <a href="#speed">⚡ Speed</a>
+    <a href="#weight">⚖️ Weight</a>
+    <a href="#data">💾 Data</a>
+    <a href="#volume">🧪 Volume</a>
+    <a href="#area">📐 Area</a>
+    <a href="#calculator">🔢 Calculator</a>
+    <a href="#formulas">📖 Formulas</a>
   </nav>
-  <button class="dark-toggle">🌙</button>
+  <button class="dark-toggle" aria-label="Toggle dark mode">🌙</button>
 </header>
 
 <section class="hero">
@@ -35,150 +38,316 @@
 
 <!-- CURRENCY -->
 <section id="currency" class="section">
-  <h2>Currency Converter</h2>
+  <h2>💱 Currency Converter</h2>
   <div class="converter-card">
-    <input type="number" id="currency-input" placeholder="Amount" />
-    <select id="currency-from"></select> →
-    <select id="currency-to"></select>
-    <p class="result" id="currency-result"></p>
+    <input type="number" id="currency-input" placeholder="Enter amount" min="0" step="0.01" />
+    <select id="currency-from" aria-label="From currency"></select>
+    <span style="font-size: 1.5rem;">→</span>
+    <select id="currency-to" aria-label="To currency"></select>
+    <p class="result" id="currency-result" role="status"></p>
     <p class="status" id="currency-status" aria-live="polite"></p>
-    <!-- Chart container + fallback message -->
+    <!-- Chart container with timeframe selector -->
     <div style="width:100%;max-width:700px;margin-top:1rem;">
       <canvas id="currency-chart" height="160" style="display:block;"></canvas>
-      <p id="currency-chart-message" style="display:none;color:var(--text-color);opacity:0.8;margin-top:0.5rem;">Historical data unavailable</p>
+      <p id="currency-chart-message" style="display:none;"></p>
     </div>
   </div>
 </section>
 
 <!-- TIME -->
 <section id="time" class="section">
-  <h2>Time Converter</h2>
+  <h2>⏰ Time Converter</h2>
   <div class="converter-card">
-    <input type="number" id="time-input" placeholder="Value" />
-    <select id="time-from"></select> →
-    <select id="time-to"></select>
-    <p class="result" id="time-result"></p>
+    <input type="number" id="time-input" placeholder="Enter value" min="0" step="any" />
+    <select id="time-from" aria-label="From time unit"></select>
+    <span style="font-size: 1.5rem;">→</span>
+    <select id="time-to" aria-label="To time unit"></select>
+    <p class="result" id="time-result" role="status"></p>
   </div>
 </section>
 
 <!-- UNIX -->
 <section id="unix" class="section">
-  <h2>UNIX Timestamp Converter</h2>
+  <h2>🕐 UNIX Timestamp Converter</h2>
   <div class="converter-card">
-    <input type="number" id="unix-input" placeholder="UNIX Timestamp (seconds)" />
-    <button id="unix-start-counter">Start Counter</button>
-    <button id="unix-stop-counter">Stop</button>
-    <button id="unix-copy-btn">Copy</button>
-    <label style="display:inline-flex;align-items:center;gap:0.5rem;margin-left:0.5rem;">
+    <input type="number" id="unix-input" placeholder="UNIX Timestamp" step="1" />
+    <button id="unix-now-btn" title="Set to current time">⏱️ Now</button>
+    <button id="unix-start-counter" title="Start live counter">▶️ Start Counter</button>
+    <button id="unix-stop-counter" title="Stop counter" style="display:none;">⏹️ Stop</button>
+    <button id="unix-copy-btn" title="Copy timestamp">📋 Copy</button>
+    <label style="display:inline-flex;align-items:center;gap:0.5rem;cursor:pointer;">
       <input type="checkbox" id="unix-ms-toggle" /> Milliseconds
     </label>
-    <p class="result" id="unix-result"></p>
+    <p class="result" id="unix-result" role="status"></p>
+    
+    <h3 style="width:100%;margin-top:1.5rem;margin-bottom:0.5rem;">Convert Date to UNIX</h3>
     <input type="datetime-local" id="utc-input" />
-    <p class="result" id="utc-result"></p>
+    <p class="result" id="utc-result" role="status"></p>
   </div>
 </section>
 
 <!-- DISTANCE -->
 <section id="distance" class="section">
-  <h2>Distance Converter</h2>
+  <h2>📏 Distance Converter</h2>
   <div class="converter-card">
-    <input type="number" id="distance-input" placeholder="Value" />
-    <select id="distance-from"></select> →
-    <select id="distance-to"></select>
-    <p class="result" id="distance-result"></p>
+    <input type="number" id="distance-input" placeholder="Enter value" step="any" />
+    <select id="distance-from" aria-label="From distance unit"></select>
+    <span style="font-size: 1.5rem;">→</span>
+    <select id="distance-to" aria-label="To distance unit"></select>
+    <p class="result" id="distance-result" role="status"></p>
   </div>
 </section>
 
 <!-- TEMPERATURE -->
 <section id="temperature" class="section">
-  <h2>Temperature Converter</h2>
+  <h2>🌡️ Temperature Converter</h2>
   <div class="converter-card">
-    <input type="number" id="temp-input" placeholder="Value" />
-    <select id="temp-from">
-      <option value="C">°C</option>
-      <option value="F">°F</option>
-      <option value="K">K</option>
-      <option value="R">°R</option>
-    </select> →
-    <select id="temp-to">
-      <option value="C">°C</option>
-      <option value="F">°F</option>
-      <option value="K">K</option>
-      <option value="R">°R</option>
+    <input type="number" id="temp-input" placeholder="Enter value" step="any" />
+    <select id="temp-from" aria-label="From temperature unit">
+      <option value="C">°C (Celsius)</option>
+      <option value="F">°F (Fahrenheit)</option>
+      <option value="K">K (Kelvin)</option>
+      <option value="R">°R (Rankine)</option>
     </select>
-    <p class="result" id="temp-result"></p>
+    <span style="font-size: 1.5rem;">→</span>
+    <select id="temp-to" aria-label="To temperature unit">
+      <option value="C">°C (Celsius)</option>
+      <option value="F">°F (Fahrenheit)</option>
+      <option value="K">K (Kelvin)</option>
+      <option value="R">°R (Rankine)</option>
+    </select>
+    <p class="result" id="temp-result" role="status"></p>
   </div>
 </section>
 
 <!-- SPEED -->
 <section id="speed" class="section">
-  <h2>Speed Converter</h2>
+  <h2>⚡ Speed Converter</h2>
   <div class="converter-card">
-    <input type="number" id="speed-input" placeholder="Value" />
-    <select id="speed-from">
-      <option>m/s</option><option>km/h</option><option>mph</option><option>ft/s</option><option>knots</option>
-    </select> →
-    <select id="speed-to">
-      <option>m/s</option><option>km/h</option><option>mph</option><option>ft/s</option><option>knots</option>
+    <input type="number" id="speed-input" placeholder="Enter value" min="0" step="any" />
+    <select id="speed-from" aria-label="From speed unit">
+      <option value="m/s">m/s</option>
+      <option value="km/h">km/h</option>
+      <option value="mph">mph</option>
+      <option value="ft/s">ft/s</option>
+      <option value="knots">knots</option>
     </select>
-    <p class="result" id="speed-result"></p>
+    <span style="font-size: 1.5rem;">→</span>
+    <select id="speed-to" aria-label="To speed unit">
+      <option value="m/s">m/s</option>
+      <option value="km/h">km/h</option>
+      <option value="mph">mph</option>
+      <option value="ft/s">ft/s</option>
+      <option value="knots">knots</option>
+    </select>
+    <p class="result" id="speed-result" role="status"></p>
   </div>
 </section>
 
 <!-- WEIGHT -->
 <section id="weight" class="section">
-  <h2>Weight Converter</h2>
+  <h2>⚖️ Weight Converter</h2>
   <div class="converter-card">
-    <input type="number" id="weight-input" placeholder="Value" />
-    <select id="weight-from">
-      <option>mg</option><option>g</option><option>kg</option><option>t</option><option>lb</option><option>oz</option>
-    </select> →
-    <select id="weight-to">
-      <option>mg</option><option>g</option><option>kg</option><option>t</option><option>lb</option><option>oz</option>
+    <input type="number" id="weight-input" placeholder="Enter value" min="0" step="any" />
+    <select id="weight-from" aria-label="From weight unit">
+      <option value="mg">mg (milligram)</option>
+      <option value="g">g (gram)</option>
+      <option value="kg">kg (kilogram)</option>
+      <option value="t">t (metric ton)</option>
+      <option value="lb">lb (pound)</option>
+      <option value="oz">oz (ounce)</option>
+      <option value="st">st (stone)</option>
     </select>
-    <p class="result" id="weight-result"></p>
+    <span style="font-size: 1.5rem;">→</span>
+    <select id="weight-to" aria-label="To weight unit">
+      <option value="mg">mg (milligram)</option>
+      <option value="g">g (gram)</option>
+      <option value="kg">kg (kilogram)</option>
+      <option value="t">t (metric ton)</option>
+      <option value="lb">lb (pound)</option>
+      <option value="oz">oz (ounce)</option>
+      <option value="st">st (stone)</option>
+    </select>
+    <p class="result" id="weight-result" role="status"></p>
   </div>
 </section>
 
 <!-- DATA -->
 <section id="data" class="section">
-  <h2>Data Size Converter</h2>
+  <h2>💾 Data Size Converter</h2>
   <div class="converter-card">
-    <input type="number" id="data-input" placeholder="Value" />
-    <select id="data-from">
-      <option>B</option><option>KB</option><option>MB</option><option>GB</option><option>TB</option><option>PB</option>
-    </select> →
-    <select id="data-to">
-      <option>B</option><option>KB</option><option>MB</option><option>GB</option><option>TB</option><option>PB</option>
+    <input type="number" id="data-input" placeholder="Enter value" min="0" step="any" />
+    <select id="data-from" aria-label="From data unit">
+      <option value="bit">bit</option>
+      <option value="B">B (Byte)</option>
+      <option value="KB">KB (Kilobyte)</option>
+      <option value="MB">MB (Megabyte)</option>
+      <option value="GB">GB (Gigabyte)</option>
+      <option value="TB">TB (Terabyte)</option>
+      <option value="PB">PB (Petabyte)</option>
     </select>
-    <p class="result" id="data-result"></p>
+    <span style="font-size: 1.5rem;">→</span>
+    <select id="data-to" aria-label="To data unit">
+      <option value="bit">bit</option>
+      <option value="B">B (Byte)</option>
+      <option value="KB">KB (Kilobyte)</option>
+      <option value="MB">MB (Megabyte)</option>
+      <option value="GB">GB (Gigabyte)</option>
+      <option value="TB">TB (Terabyte)</option>
+      <option value="PB">PB (Petabyte)</option>
+    </select>
+    <p class="result" id="data-result" role="status"></p>
+  </div>
+</section>
+
+<!-- VOLUME -->
+<section id="volume" class="section">
+  <h2>🧪 Volume Converter</h2>
+  <div class="converter-card">
+    <input type="number" id="volume-input" placeholder="Enter value" min="0" step="any" />
+    <select id="volume-from" aria-label="From volume unit">
+      <option value="ml">ml (milliliter)</option>
+      <option value="l">l (liter)</option>
+      <option value="m3">m³ (cubic meter)</option>
+      <option value="gal">gal (gallon US)</option>
+      <option value="qt">qt (quart)</option>
+      <option value="pt">pt (pint)</option>
+      <option value="cup">cup</option>
+      <option value="floz">fl oz (fluid ounce)</option>
+      <option value="tbsp">tbsp (tablespoon)</option>
+      <option value="tsp">tsp (teaspoon)</option>
+    </select>
+    <span style="font-size: 1.5rem;">→</span>
+    <select id="volume-to" aria-label="To volume unit">
+      <option value="ml">ml (milliliter)</option>
+      <option value="l">l (liter)</option>
+      <option value="m3">m³ (cubic meter)</option>
+      <option value="gal">gal (gallon US)</option>
+      <option value="qt">qt (quart)</option>
+      <option value="pt">pt (pint)</option>
+      <option value="cup">cup</option>
+      <option value="floz">fl oz (fluid ounce)</option>
+      <option value="tbsp">tbsp (tablespoon)</option>
+      <option value="tsp">tsp (teaspoon)</option>
+    </select>
+    <p class="result" id="volume-result" role="status"></p>
+  </div>
+</section>
+
+<!-- AREA -->
+<section id="area" class="section">
+  <h2>📐 Area Converter</h2>
+  <div class="converter-card">
+    <input type="number" id="area-input" placeholder="Enter value" min="0" step="any" />
+    <select id="area-from" aria-label="From area unit">
+      <option value="mm2">mm² (square millimeter)</option>
+      <option value="cm2">cm² (square centimeter)</option>
+      <option value="m2">m² (square meter)</option>
+      <option value="km2">km² (square kilometer)</option>
+      <option value="ha">ha (hectare)</option>
+      <option value="in2">in² (square inch)</option>
+      <option value="ft2">ft² (square foot)</option>
+      <option value="yd2">yd² (square yard)</option>
+      <option value="ac">ac (acre)</option>
+      <option value="mi2">mi² (square mile)</option>
+    </select>
+    <span style="font-size: 1.5rem;">→</span>
+    <select id="area-to" aria-label="To area unit">
+      <option value="mm2">mm² (square millimeter)</option>
+      <option value="cm2">cm² (square centimeter)</option>
+      <option value="m2">m² (square meter)</option>
+      <option value="km2">km² (square kilometer)</option>
+      <option value="ha">ha (hectare)</option>
+      <option value="in2">in² (square inch)</option>
+      <option value="ft2">ft² (square foot)</option>
+      <option value="yd2">yd² (square yard)</option>
+      <option value="ac">ac (acre)</option>
+      <option value="mi2">mi² (square mile)</option>
+    </select>
+    <p class="result" id="area-result" role="status"></p>
   </div>
 </section>
 
 <!-- CALCULATOR -->
 <section id="calculator" class="section">
-  <h2>Scientific Calculator</h2>
+  <h2>🔢 Scientific Calculator</h2>
   <div class="converter-card" style="flex-direction:column;gap:1rem;">
-    <div style="display:flex;gap:0.5rem;align-items:center;">
-      <input type="text" id="calc-display" placeholder="0" readonly style="flex:1;padding:0.7rem 1rem;border-radius:8px;" />
-      <button id="calc-clear">C</button>
-      <button id="calc-back">⌫</button>
+    <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+      <input type="text" id="calc-display" placeholder="0" readonly style="flex:1;min-width:200px;" aria-label="Calculator display" />
+      <button id="calc-clear" title="Clear">C</button>
+      <button id="calc-back" title="Backspace">⌫</button>
     </div>
 
-    <div id="calc-buttons" style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.4rem;">
-      <!-- Basic keypad + some functions. More functions can be added with mathjs. -->
-      <button data-value="7">7</button><button data-value="8">8</button><button data-value="9">9</button><button data-value="/"">/</button><button data-action="sqrt">sqrt</button>
-      <button data-value="4">4</button><button data-value="5">5</button><button data-value="6">6</button><button data-value="*">*</button><button data-action="pow">pow</button>
-      <button data-value="1">1</button><button data-value="2">2</button><button data-value="3">3</button><button data-value="-">-</button><button data-action="gcd">gcd</button>
-      <button data-value="0">0</button><button data-value=".">.</button><button data-value="(">(</button><button data-value=")">)</button><button data-action="lcm">lcm</button>
-      <button data-value="%">%</button><button style="grid-column:span 3;" id="calc-equals">=</button><button data-value="+">+</button>
+    <div id="calc-buttons">
+      <!-- Row 1: Scientific functions -->
+      <button data-action="sin" title="Sine">sin</button>
+      <button data-action="cos" title="Cosine">cos</button>
+      <button data-action="tan" title="Tangent">tan</button>
+      <button data-action="sqrt" title="Square root">√</button>
+      <button data-action="deg-rad" title="Toggle degrees/radians" style="background:#4CAF50;">DEG</button>
+      
+      <!-- Row 2: More functions -->
+      <button data-action="asin" title="Arc sine">asin</button>
+      <button data-action="acos" title="Arc cosine">acos</button>
+      <button data-action="atan" title="Arc tangent">atan</button>
+      <button data-action="pow" title="Power">x^y</button>
+      <button data-action="log" title="Logarithm base 10">log</button>
+      
+      <!-- Row 3: Additional functions -->
+      <button data-action="ln" title="Natural logarithm">ln</button>
+      <button data-action="exp" title="e^x">e^x</button>
+      <button data-action="abs" title="Absolute value">|x|</button>
+      <button data-action="square" title="Square">x²</button>
+      <button data-action="cube" title="Cube">x³</button>
+      
+      <!-- Row 4: Constants and special -->
+      <button data-action="pi" title="Pi">π</button>
+      <button data-action="e" title="Euler's number">e</button>
+      <button data-action="factorial" title="Factorial">n!</button>
+      <button data-action="ans" title="Last answer">ANS</button>
+      <button data-value="%" title="Percent">%</button>
+      
+      <!-- Row 5: Numbers and operators -->
+      <button data-value="7">7</button>
+      <button data-value="8">8</button>
+      <button data-value="9">9</button>
+      <button data-value="/" title="Divide">/</button>
+      <button data-action="gcd" title="Greatest common divisor">gcd</button>
+      
+      <!-- Row 6 -->
+      <button data-value="4">4</button>
+      <button data-value="5">5</button>
+      <button data-value="6">6</button>
+      <button data-value="*" title="Multiply">×</button>
+      <button data-action="lcm" title="Least common multiple">lcm</button>
+      
+      <!-- Row 7 -->
+      <button data-value="1">1</button>
+      <button data-value="2">2</button>
+      <button data-value="3">3</button>
+      <button data-value="-" title="Subtract">-</button>
+      <button data-value="^" title="Power">^</button>
+      
+      <!-- Row 8 -->
+      <button data-value="0">0</button>
+      <button data-value=".">.</button>
+      <button data-value="(">(</button>
+      <button data-value=")">)</button>
+      <button data-value="+" title="Add">+</button>
+      
+      <!-- Row 9: Equals button spans multiple columns -->
+      <button id="calc-equals" style="grid-column:span 5;background:#4CAF50;" title="Calculate">=</button>
     </div>
+    
+    <p style="font-size:0.85rem;opacity:0.7;margin:0.5rem 0 0 0;">
+      💡 Tip: You can use your keyboard! Numbers, operators, Enter (=), Escape (Clear), Backspace
+    </p>
   </div>
 </section>
 
-<!-- FORMULAS (single page for all formulas) -->
+<!-- FORMULAS -->
 <section id="formulas" class="section">
-  <h2>Formulas & Reference</h2>
+  <h2>📖 Formulas & Reference</h2>
   <div id="formulas-content">
     <!-- populated by formulas.js -->
   </div>
@@ -193,6 +362,8 @@
 <script src="js/speed.js"></script>
 <script src="js/weight.js"></script>
 <script src="js/data.js"></script>
+<script src="js/volume.js"></script>
+<script src="js/area.js"></script>
 <script src="js/formulas.js"></script>
 <script src="js/calculator.js"></script>
 </body>

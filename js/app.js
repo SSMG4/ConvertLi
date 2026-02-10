@@ -1,115 +1,337 @@
-// app.js - global wiring & theme persistence
+// app.js - Main application controller with theme management and event binding
 
 const toggleBtn = document.querySelector('.dark-toggle');
 
-// Initialize theme from localStorage
-const savedTheme = localStorage.getItem('convertli-theme');
-if (savedTheme) {
-  document.body.setAttribute('data-theme', savedTheme);
-  toggleBtn.textContent = savedTheme === 'light' ? '🌙' : '☀️';
-}
+// Initialize theme from localStorage with smooth transition
+const savedTheme = localStorage.getItem('convertli-theme') || 'light';
+document.body.setAttribute('data-theme', savedTheme);
+toggleBtn.textContent = savedTheme === 'light' ? '🌙' : '☀️';
 
+// Theme toggle with animation
 toggleBtn.onclick = () => {
-  const theme = document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-  document.body.setAttribute('data-theme', theme);
-  toggleBtn.textContent = theme === 'light' ? '🌙' : '☀️';
-  localStorage.setItem('convertli-theme', theme);
+  const currentTheme = document.body.getAttribute('data-theme');
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  
+  document.body.setAttribute('data-theme', newTheme);
+  toggleBtn.textContent = newTheme === 'light' ? '🌙' : '☀️';
+  localStorage.setItem('convertli-theme', newTheme);
+  
+  // Add a subtle animation effect
+  toggleBtn.style.transform = 'rotate(360deg)';
+  setTimeout(() => {
+    toggleBtn.style.transform = 'rotate(0deg)';
+  }, 300);
 };
 
-// Currency listeners (currency.js provides convertCurrency)
-document.getElementById('currency-input').addEventListener('input', () => convertCurrency());
-document.getElementById('currency-from').addEventListener('input', () => {
-  convertCurrency();
-  fetchCurrencyHistory(); // update chart
+// Debounce function for performance optimization
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+// Currency event listeners
+const currencyInput = document.getElementById('currency-input');
+const currencyFrom = document.getElementById('currency-from');
+const currencyTo = document.getElementById('currency-to');
+
+if (currencyInput && currencyFrom && currencyTo) {
+  const debouncedConvert = debounce(() => {
+    if (typeof convertCurrency === 'function') convertCurrency();
+  }, 300);
+  
+  currencyInput.addEventListener('input', debouncedConvert);
+  currencyFrom.addEventListener('change', () => {
+    if (typeof convertCurrency === 'function') convertCurrency();
+    if (typeof fetchCurrencyHistory === 'function') fetchCurrencyHistory();
+  });
+  currencyTo.addEventListener('change', () => {
+    if (typeof convertCurrency === 'function') convertCurrency();
+    if (typeof fetchCurrencyHistory === 'function') fetchCurrencyHistory();
+  });
+}
+
+// Time event listeners
+const timeInput = document.getElementById('time-input');
+const timeFrom = document.getElementById('time-from');
+const timeTo = document.getElementById('time-to');
+
+if (timeInput && timeFrom && timeTo) {
+  timeInput.addEventListener('input', () => {
+    if (typeof convertTime === 'function') convertTime();
+  });
+  timeFrom.addEventListener('change', () => {
+    if (typeof convertTime === 'function') convertTime();
+  });
+  timeTo.addEventListener('change', () => {
+    if (typeof convertTime === 'function') convertTime();
+  });
+}
+
+// Distance event listeners
+const distanceInput = document.getElementById('distance-input');
+const distanceFrom = document.getElementById('distance-from');
+const distanceTo = document.getElementById('distance-to');
+
+if (distanceInput && distanceFrom && distanceTo) {
+  distanceInput.addEventListener('input', () => {
+    if (typeof convertDistance === 'function') convertDistance();
+  });
+  distanceFrom.addEventListener('change', () => {
+    if (typeof convertDistance === 'function') convertDistance();
+  });
+  distanceTo.addEventListener('change', () => {
+    if (typeof convertDistance === 'function') convertDistance();
+  });
+}
+
+// Temperature event listeners
+const tempInput = document.getElementById('temp-input');
+const tempFrom = document.getElementById('temp-from');
+const tempTo = document.getElementById('temp-to');
+
+if (tempInput && tempFrom && tempTo) {
+  tempInput.addEventListener('input', () => {
+    if (typeof convertTemperatureUI === 'function') convertTemperatureUI();
+  });
+  tempFrom.addEventListener('change', () => {
+    if (typeof convertTemperatureUI === 'function') convertTemperatureUI();
+  });
+  tempTo.addEventListener('change', () => {
+    if (typeof convertTemperatureUI === 'function') convertTemperatureUI();
+  });
+}
+
+// Speed event listeners
+const speedInput = document.getElementById('speed-input');
+const speedFrom = document.getElementById('speed-from');
+const speedTo = document.getElementById('speed-to');
+
+if (speedInput && speedFrom && speedTo) {
+  const convertSpeedUI = () => {
+    if (typeof convertSpeed !== 'function') return;
+    
+    const val = Number(speedInput.value);
+    const from = speedFrom.value;
+    const to = speedTo.value;
+    const resultEl = document.getElementById('speed-result');
+    
+    if (!resultEl) return;
+    
+    if (speedInput.value === '' || isNaN(val) || val < 0) {
+      resultEl.textContent = '';
+      resultEl.classList.remove('show');
+      return;
+    }
+    
+    const result = convertSpeed(val, from, to);
+    
+    if (result === 'Invalid') {
+      resultEl.textContent = '❌ Invalid input';
+      resultEl.classList.remove('show');
+      return;
+    }
+    
+    const formatted = result < 0.001 ? result.toExponential(4) :
+                     result < 1000 ? result.toFixed(4) :
+                     result.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    
+    resultEl.textContent = `${val} ${from} = ${formatted} ${to}`;
+    resultEl.classList.add('show');
+  };
+  
+  speedInput.addEventListener('input', convertSpeedUI);
+  speedFrom.addEventListener('change', convertSpeedUI);
+  speedTo.addEventListener('change', convertSpeedUI);
+}
+
+// Weight event listeners (already handled in weight.js but adding safety check)
+const weightInput = document.getElementById('weight-input');
+if (weightInput) {
+  // Event listeners are in weight.js, just trigger initial conversion
+}
+
+// Data event listeners (already handled in data.js but adding safety check)
+const dataInput = document.getElementById('data-input');
+if (dataInput) {
+  // Event listeners are in data.js, just trigger initial conversion
+}
+
+// Volume event listeners (handled in volume.js)
+const volumeInput = document.getElementById('volume-input');
+if (volumeInput) {
+  // Event listeners are in volume.js
+}
+
+// Area event listeners (handled in area.js)
+const areaInput = document.getElementById('area-input');
+if (areaInput) {
+  // Event listeners are in area.js
+}
+
+// Smooth scroll to sections with offset for header
+document.querySelectorAll('header nav a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function (e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      const headerOffset = 90;
+      const elementPosition = target.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  });
 });
-document.getElementById('currency-to').addEventListener('input', () => {
-  convertCurrency();
-  fetchCurrencyHistory();
-});
 
-// Time listeners
-document.getElementById('time-input').addEventListener('input', () => convertTime());
-document.getElementById('time-from').addEventListener('input', () => convertTime());
-document.getElementById('time-to').addEventListener('input', () => convertTime());
+// Add scroll effect to header
+let lastScroll = 0;
+const header = document.querySelector('header');
 
-// UNIX listeners (unix.js handles buttons)
-document.getElementById('unix-input').addEventListener('input', () => {
-  convertUnix();
-});
-document.getElementById('utc-input').addEventListener('input', () => convertUTCtoUnix());
-
-// Distance listeners
-document.getElementById('distance-input').addEventListener('input', () => convertDistance());
-document.getElementById('distance-from').addEventListener('input', () => convertDistance());
-document.getElementById('distance-to').addEventListener('input', () => convertDistance());
-
-// Temperature listeners
-document.getElementById('temp-input').addEventListener('input', () => convertTemperatureUI());
-document.getElementById('temp-from').addEventListener('input', () => convertTemperatureUI());
-document.getElementById('temp-to').addEventListener('input', () => convertTemperatureUI());
-
-// Speed listeners
-document.getElementById('speed-input').addEventListener('input', () => {
-  const v = Number(document.getElementById('speed-input').value);
-  const from = document.getElementById('speed-from').value;
-  const to = document.getElementById('speed-to').value;
-  const out = convertSpeed(v, from, to);
-  const el = document.getElementById('speed-result');
-  if (out === 'Invalid') {
-    el.textContent = 'Invalid input';
-    el.classList.remove('show');
+window.addEventListener('scroll', () => {
+  const currentScroll = window.pageYOffset;
+  
+  if (currentScroll <= 0) {
+    header.style.boxShadow = 'rgba(0, 0, 0, 0.1) 0px 2px 8px';
   } else {
-    el.textContent = `${v} ${from} = ${out} ${to}`;
-    el.classList.add('show');
+    header.style.boxShadow = 'rgba(0, 0, 0, 0.2) 0px 4px 12px';
   }
+  
+  lastScroll = currentScroll;
 });
-document.getElementById('speed-from').addEventListener('input', () => document.getElementById('speed-input').dispatchEvent(new Event('input')));
-document.getElementById('speed-to').addEventListener('input', () => document.getElementById('speed-input').dispatchEvent(new Event('input')));
 
-// Weight listeners
-document.getElementById('weight-input').addEventListener('input', () => {
-  const v = Number(document.getElementById('weight-input').value);
-  const from = document.getElementById('weight-from').value;
-  const to = document.getElementById('weight-to').value;
-  const out = convertWeight(v, from, to);
-  const el = document.getElementById('weight-result');
-  if (out === 'Invalid') {
-    el.textContent = 'Invalid input';
-    el.classList.remove('show');
-  } else {
-    el.textContent = `${v} ${from} = ${out} ${to}`;
-    el.classList.add('show');
-  }
+// Intersection Observer for section animations
+const observerOptions = {
+  threshold: 0.1,
+  rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
+    }
+  });
+}, observerOptions);
+
+// Observe all sections for animation
+document.querySelectorAll('.section').forEach(section => {
+  section.style.opacity = '0';
+  section.style.transform = 'translateY(20px)';
+  section.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+  observer.observe(section);
 });
-document.getElementById('weight-from').addEventListener('input', () => document.getElementById('weight-input').dispatchEvent(new Event('input')));
-document.getElementById('weight-to').addEventListener('input', () => document.getElementById('weight-input').dispatchEvent(new Event('input')));
 
-// Data listeners
-document.getElementById('data-input').addEventListener('input', () => {
-  const v = Number(document.getElementById('data-input').value);
-  const from = document.getElementById('data-from').value;
-  const to = document.getElementById('data-to').value;
-  const out = convertData(v, from, to);
-  const el = document.getElementById('data-result');
-  if (out === 'Invalid') {
-    el.textContent = 'Invalid input';
-    el.classList.remove('show');
-  } else {
-    el.textContent = `${v} ${from} = ${out} ${to}`;
-    el.classList.add('show');
-  }
-});
-document.getElementById('data-from').addEventListener('input', () => document.getElementById('data-input').dispatchEvent(new Event('input')));
-document.getElementById('data-to').addEventListener('input', () => document.getElementById('data-input').dispatchEvent(new Event('input')));
-
-// Populate selects that other modules already fill (distance/time) - those files already do options generation.
-// For any modules that need an initial conversion run, kick them off:
+// Initial conversion triggers on page load
 window.addEventListener('DOMContentLoaded', () => {
-  // Attempt initial conversions if inputs already have values
-  document.getElementById('time-input').dispatchEvent(new Event('input'));
-  document.getElementById('distance-input').dispatchEvent(new Event('input'));
-  document.getElementById('speed-input').dispatchEvent(new Event('input'));
-  document.getElementById('weight-input').dispatchEvent(new Event('input'));
-  document.getElementById('data-input').dispatchEvent(new Event('input'));
-  document.getElementById('currency-input').dispatchEvent(new Event('input'));
+  // Give modules time to initialize
+  setTimeout(() => {
+    // Trigger initial conversions if values exist
+    if (timeInput && timeInput.value && typeof convertTime === 'function') {
+      convertTime();
+    }
+    if (distanceInput && distanceInput.value && typeof convertDistance === 'function') {
+      convertDistance();
+    }
+    if (speedInput && speedInput.value) {
+      speedInput.dispatchEvent(new Event('input'));
+    }
+    if (weightInput && weightInput.value && typeof convertWeightUI === 'function') {
+      convertWeightUI();
+    }
+    if (dataInput && dataInput.value && typeof convertDataUI === 'function') {
+      convertDataUI();
+    }
+    if (volumeInput && volumeInput.value && typeof convertVolume === 'function') {
+      convertVolume();
+    }
+    if (areaInput && areaInput.value && typeof convertArea === 'function') {
+      convertArea();
+    }
+    if (currencyInput && currencyInput.value && typeof convertCurrency === 'function') {
+      convertCurrency();
+    }
+  }, 500);
 });
+
+// Add keyboard shortcuts info
+document.addEventListener('keydown', (e) => {
+  // Ctrl/Cmd + K to focus search/nav
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    const firstNavLink = document.querySelector('header nav a');
+    if (firstNavLink) firstNavLink.focus();
+  }
+});
+
+// Performance optimization: lazy load chart library if needed
+if ('IntersectionObserver' in window) {
+  const chartObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && entry.target.id === 'currency') {
+        // Currency section is visible, chart.js should already be loaded
+        chartObserver.unobserve(entry.target);
+      }
+    });
+  });
+  
+  const currencySection = document.getElementById('currency');
+  if (currencySection) {
+    chartObserver.observe(currencySection);
+  }
+}
+
+// Add visual feedback for copy actions
+document.addEventListener('click', (e) => {
+  if (e.target.textContent.includes('Copied') || e.target.textContent.includes('✓')) {
+    // Add a subtle pulse effect
+    e.target.style.animation = 'pulse 0.3s ease-in-out';
+    setTimeout(() => {
+      e.target.style.animation = '';
+    }, 300);
+  }
+});
+
+// Prevent form submission on Enter key (except in calculator)
+document.querySelectorAll('input[type="number"]').forEach(input => {
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      // Trigger conversion instead
+      input.dispatchEvent(new Event('input'));
+    }
+  });
+});
+
+// Add loading state management
+window.addEventListener('load', () => {
+  document.body.classList.add('loaded');
+  
+  // Remove any loading indicators
+  const loadingEls = document.querySelectorAll('.loading');
+  loadingEls.forEach(el => el.classList.remove('loading'));
+});
+
+// Error handling for missing functions
+window.addEventListener('error', (e) => {
+  console.error('Application error:', e);
+  // Don't show errors to users, just log them
+});
+
+// Service worker registration for PWA (future enhancement)
+if ('serviceWorker' in navigator) {
+  // Commented out for now, can be enabled with service worker file
+  // navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration failed'));
+}
+
+console.log('ConvertLi initialized successfully ✓');
