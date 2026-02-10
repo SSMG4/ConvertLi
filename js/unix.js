@@ -1,6 +1,6 @@
-// unix.js - Enhanced UNIX timestamp converter with polished UI
-const unixInput = document.getElementById('unix-input');
-const utcInput = document.getElementById('utc-input');
+// unix.js - Enhanced UNIX timestamp converter with auto-starting live counter
+const unixInputEl = document.getElementById('unix-input');
+const utcInputEl = document.getElementById('utc-input');
 const unixResultEl = document.getElementById('unix-result');
 const utcResultEl = document.getElementById('utc-result');
 const startBtn = document.getElementById('unix-start-counter');
@@ -10,16 +10,14 @@ const copyBtn = document.getElementById('unix-copy-btn');
 const nowBtn = document.getElementById('unix-now-btn');
 
 let unixInterval = null;
-let baseTs = null; // in seconds
+let baseTs = null;
 let isCounterRunning = false;
 
-// Format timestamp display with better readability
 function showUnix(tsSeconds) {
   if (!unixResultEl) return;
   
   const date = new Date(tsSeconds * 1000);
   
-  // Check if valid date
   if (isNaN(date.getTime())) {
     unixResultEl.textContent = '❌ Invalid timestamp';
     unixResultEl.classList.add('show');
@@ -41,7 +39,6 @@ function showUnix(tsSeconds) {
     timeZoneName: 'short'
   });
   
-  // Calculate relative time
   const now = Math.floor(Date.now() / 1000);
   const diff = Math.abs(now - tsSeconds);
   let relativeTime = '';
@@ -74,12 +71,11 @@ function showUnix(tsSeconds) {
 }
 
 function convertUnix() {
-  if (!unixInput || !unixResultEl) return;
+  if (!unixInputEl || !unixResultEl) return;
   
-  let ts = Number(unixInput.value);
+  let ts = Number(unixInputEl.value);
   
-  // Handle empty input
-  if (unixInput.value === '') {
+  if (unixInputEl.value === '') {
     unixResultEl.textContent = '';
     unixResultEl.classList.remove('show');
     stopUnixCounter();
@@ -94,7 +90,6 @@ function convertUnix() {
     return;
   }
   
-  // Auto-detect milliseconds (if value > year 2100 in seconds)
   if (ts > 4102444800) {
     ts = Math.floor(ts / 1000);
     msToggle.checked = true;
@@ -105,7 +100,7 @@ function convertUnix() {
 }
 
 function convertUTCtoUnix() {
-  const utcVal = utcInput.value;
+  const utcVal = utcInputEl.value;
   if (!utcVal || !utcResultEl) return;
   
   const date = new Date(utcVal);
@@ -128,54 +123,53 @@ function convertUTCtoUnix() {
   `;
   utcResultEl.classList.add('show');
   
-  // Sync with main input
-  unixInput.value = tsSeconds;
+  unixInputEl.value = tsSeconds;
   convertUnix();
 }
 
-function startUnixCounter() {
-  if (!unixInput || !unixResultEl) return;
-  
-  const tsRaw = Number(unixInput.value);
-  if (isNaN(tsRaw)) {
-    unixResultEl.textContent = '❌ Enter valid timestamp first';
-    unixResultEl.classList.add('show');
-    unixResultEl.style.color = '#f44336';
-    return;
-  }
-  
-  baseTs = Math.floor(tsRaw);
-  const startTime = Date.now();
-  const startTsMillis = baseTs * 1000;
-  
+function startLiveCounter() {
   if (unixInterval) clearInterval(unixInterval);
   
   isCounterRunning = true;
-  startBtn.textContent = '⏸️ Pause';
-  startBtn.style.background = '#ff9800';
-  stopBtn.style.display = 'inline-block';
+  if (startBtn) {
+    startBtn.textContent = '⏸️ Pause';
+    startBtn.style.background = '#ff9800';
+  }
+  if (stopBtn) stopBtn.style.display = 'inline-block';
   
-  unixInterval = setInterval(() => {
-    const elapsed = Date.now() - startTime;
-    const currentTsMillis = startTsMillis + elapsed;
-    const currentTs = Math.floor(currentTsMillis / 1000);
+  function updateCounter() {
+    const now = Date.now();
+    const currentTs = msToggle && msToggle.checked ? now : Math.floor(now / 1000);
     
-    unixInput.value = msToggle.checked ? currentTsMillis : currentTs;
+    if (unixInputEl) unixInputEl.value = currentTs;
     
-    const elapsedSec = Math.floor(elapsed / 1000);
-    const hours = Math.floor(elapsedSec / 3600);
-    const mins = Math.floor((elapsedSec % 3600) / 60);
-    const secs = elapsedSec % 60;
-    
-    unixResultEl.style.color = 'var(--text-color)';
-    unixResultEl.innerHTML = `
-      <strong>Live Counter Running</strong><br>
-      Current: ${msToggle.checked ? currentTsMillis : currentTs}<br>
-      Elapsed: ${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}<br>
-      <em style="opacity: 0.7; font-size: 0.9em;">Started at: ${new Date(startTsMillis).toLocaleString()}</em>
-    `;
-    unixResultEl.classList.add('show');
-  }, 100);
+    if (unixResultEl) {
+      const date = new Date(now);
+      const utcString = date.toUTCString();
+      const localString = date.toLocaleString('en-US', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZoneName: 'short'
+      });
+      
+      unixResultEl.style.color = 'var(--text-color)';
+      unixResultEl.innerHTML = `
+        <strong>🔴 LIVE COUNTER</strong><br>
+        <strong>Current:</strong> ${msToggle && msToggle.checked ? now : Math.floor(now / 1000)}<br>
+        <strong>UTC:</strong> ${utcString}<br>
+        <strong>Local:</strong> ${localString}
+      `;
+      unixResultEl.classList.add('show');
+    }
+  }
+  
+  updateCounter();
+  unixInterval = setInterval(updateCounter, 100);
 }
 
 function stopUnixCounter() {
@@ -185,11 +179,12 @@ function stopUnixCounter() {
   }
   
   isCounterRunning = false;
-  startBtn.textContent = '▶️ Start Counter';
-  startBtn.style.background = 'var(--accent)';
+  if (startBtn) {
+    startBtn.textContent = '▶️ Start Counter';
+    startBtn.style.background = 'var(--accent)';
+  }
   
-  // Show final value
-  if (unixInput && unixInput.value) {
+  if (unixInputEl && unixInputEl.value) {
     convertUnix();
   }
 }
@@ -198,73 +193,79 @@ function setCurrentTimestamp() {
   const now = Date.now();
   const nowSeconds = Math.floor(now / 1000);
   
-  if (msToggle.checked) {
-    unixInput.value = now;
+  if (msToggle && msToggle.checked) {
+    if (unixInputEl) unixInputEl.value = now;
   } else {
-    unixInput.value = nowSeconds;
+    if (unixInputEl) unixInputEl.value = nowSeconds;
   }
   
   convertUnix();
 }
 
-// Event listeners
-msToggle.addEventListener('change', () => {
-  const tsRaw = Number(unixInput.value);
-  if (isNaN(tsRaw) || !unixInput.value) return;
-  
-  if (msToggle.checked) {
-    // Convert seconds to milliseconds
-    unixInput.value = tsRaw * 1000;
-  } else {
-    // Convert milliseconds to seconds
-    unixInput.value = Math.floor(tsRaw / 1000);
-  }
-  
-  convertUnix();
-});
+if (msToggle) {
+  msToggle.addEventListener('change', () => {
+    const tsRaw = Number(unixInputEl.value);
+    if (isNaN(tsRaw) || !unixInputEl.value) return;
+    
+    if (msToggle.checked) {
+      unixInputEl.value = tsRaw * 1000;
+    } else {
+      unixInputEl.value = Math.floor(tsRaw / 1000);
+    }
+    
+    if (!isCounterRunning) {
+      convertUnix();
+    }
+  });
+}
 
-copyBtn.addEventListener('click', async () => {
-  const tsRaw = Number(unixInput.value);
-  if (isNaN(tsRaw)) {
-    copyBtn.textContent = '❌ Invalid';
-    setTimeout(() => copyBtn.textContent = '📋 Copy', 1000);
-    return;
-  }
-  
-  const out = msToggle.checked ? String(Math.floor(tsRaw)) : String(Math.floor(tsRaw));
-  
-  try {
-    await navigator.clipboard.writeText(out);
-    copyBtn.textContent = '✓ Copied!';
-    copyBtn.style.background = '#4CAF50';
-    setTimeout(() => {
-      copyBtn.textContent = '📋 Copy';
-      copyBtn.style.background = '';
-    }, 1500);
-  } catch (e) {
-    console.error('Copy failed', e);
-    copyBtn.textContent = '❌ Failed';
-    setTimeout(() => copyBtn.textContent = '📋 Copy', 1000);
-  }
-});
+if (copyBtn) {
+  copyBtn.addEventListener('click', async () => {
+    const tsRaw = Number(unixInputEl.value);
+    if (isNaN(tsRaw)) {
+      copyBtn.textContent = '❌ Invalid';
+      setTimeout(() => copyBtn.textContent = '📋 Copy', 1000);
+      return;
+    }
+    
+    const out = String(Math.floor(tsRaw));
+    
+    try {
+      await navigator.clipboard.writeText(out);
+      copyBtn.textContent = '✓ Copied!';
+      copyBtn.style.background = '#4CAF50';
+      setTimeout(() => {
+        copyBtn.textContent = '📋 Copy';
+        copyBtn.style.background = '';
+      }, 1500);
+    } catch (e) {
+      console.error('Copy failed', e);
+      copyBtn.textContent = '❌ Failed';
+      setTimeout(() => copyBtn.textContent = '📋 Copy', 1000);
+    }
+  });
+}
 
-startBtn.addEventListener('click', () => {
-  if (isCounterRunning) {
-    stopUnixCounter();
-  } else {
-    startUnixCounter();
-  }
-});
+if (startBtn) {
+  startBtn.addEventListener('click', () => {
+    if (isCounterRunning) {
+      stopUnixCounter();
+    } else {
+      startLiveCounter();
+    }
+  });
+}
 
-stopBtn.addEventListener('click', stopUnixCounter);
+if (stopBtn) {
+  stopBtn.addEventListener('click', stopUnixCounter);
+}
 
 if (nowBtn) {
   nowBtn.addEventListener('click', setCurrentTimestamp);
 }
 
-// Input listeners
-if (unixInput) {
-  unixInput.addEventListener('input', () => {
+if (unixInputEl) {
+  unixInputEl.addEventListener('input', () => {
     if (isCounterRunning) {
       stopUnixCounter();
     }
@@ -272,17 +273,13 @@ if (unixInput) {
   });
 }
 
-if (utcInput) {
-  utcInput.addEventListener('input', convertUTCtoUnix);
+if (utcInputEl) {
+  utcInputEl.addEventListener('input', convertUTCtoUnix);
 }
 
-// Initialize with current timestamp on page load
 window.addEventListener('DOMContentLoaded', () => {
-  if (unixInput && !unixInput.value) {
-    setCurrentTimestamp();
-  }
+  startLiveCounter();
 });
 
-// Expose functions
 window.convertUnix = convertUnix;
 window.convertUTCtoUnix = convertUTCtoUnix;

@@ -1,6 +1,6 @@
 // currency.js - Enhanced currency converter with improved charts and multiple timeframes
-const currencyFrom = document.getElementById('currency-from');
-const currencyTo = document.getElementById('currency-to');
+const currencyFromSelect = document.getElementById('currency-from');
+const currencyToSelect = document.getElementById('currency-to');
 const currencyResultEl = document.getElementById('currency-result');
 const currencyStatusEl = document.getElementById('currency-status');
 const currencyChartEl = document.getElementById('currency-chart');
@@ -10,9 +10,8 @@ let currencyRates = {};
 let currencySymbols = [];
 let currencyReady = false;
 let currencyChart = null;
-let currentTimeframe = '1Y'; // Default timeframe
+let currentTimeframe = '1Y';
 
-// Safe fetch with timeout
 async function safeFetch(url, timeout = 10000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
@@ -29,46 +28,37 @@ async function safeFetch(url, timeout = 10000) {
 }
 
 async function fetchCurrencies() {
-  // Show loading state
   if (currencyStatusEl) currencyStatusEl.textContent = 'Loading currencies...';
   
-  // Fetch available currency symbols
   const data = await safeFetch('https://api.exchangerate.host/symbols');
   if (!data || !data.symbols) {
-    // Comprehensive fallback list
-    currencySymbols = [
-      'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'SEK', 'NZD',
-      'MXN', 'SGD', 'HKD', 'NOK', 'KRW', 'TRY', 'INR', 'RUB', 'BRL', 'ZAR'
-    ].sort();
+    currencySymbols = ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'SEK', 'NZD', 'MXN', 'SGD', 'HKD', 'NOK', 'KRW', 'TRY', 'INR', 'RUB', 'BRL', 'ZAR'].sort();
   } else {
     currencySymbols = Object.keys(data.symbols).sort();
   }
 
-  // Populate selects with better formatting
-  if (currencyFrom && currencyTo) {
-    currencyFrom.innerHTML = '';
-    currencyTo.innerHTML = '';
+  if (currencyFromSelect && currencyToSelect) {
+    currencyFromSelect.innerHTML = '';
+    currencyToSelect.innerHTML = '';
     
     currencySymbols.forEach(s => {
-      const label = data && data.symbols && data.symbols[s] ? 
-        `${s} - ${data.symbols[s].description}` : s;
+      const label = data && data.symbols && data.symbols[s] ? `${s} - ${data.symbols[s].description}` : s;
       
       const optA = document.createElement('option');
       optA.value = s;
       optA.textContent = label;
-      currencyFrom.appendChild(optA);
+      currencyFromSelect.appendChild(optA);
       
       const optB = document.createElement('option');
       optB.value = s;
       optB.textContent = label;
-      currencyTo.appendChild(optB);
+      currencyToSelect.appendChild(optB);
     });
 
-    // Set sensible defaults
-    if (currencySymbols.includes('USD')) currencyFrom.value = 'USD';
-    else currencyFrom.selectedIndex = 0;
-    if (currencySymbols.includes('EUR')) currencyTo.value = 'EUR';
-    else currencyTo.selectedIndex = currencySymbols.length > 1 ? 1 : 0;
+    if (currencySymbols.includes('USD')) currencyFromSelect.value = 'USD';
+    else currencyFromSelect.selectedIndex = 0;
+    if (currencySymbols.includes('EUR')) currencyToSelect.value = 'EUR';
+    else currencyToSelect.selectedIndex = currencySymbols.length > 1 ? 1 : 0;
   }
 
   await fetchRates();
@@ -77,24 +67,13 @@ async function fetchCurrencies() {
 async function fetchRates() {
   const data = await safeFetch('https://api.exchangerate.host/latest');
   if (!data || !data.rates) {
-    // Fallback: use approximate rates for common currencies
-    const fallbackRates = {
-      USD: 1, EUR: 0.92, GBP: 0.79, JPY: 149.5, AUD: 1.52, CAD: 1.36,
-      CHF: 0.88, CNY: 7.24, SEK: 10.36, NZD: 1.63, MXN: 17.12, SGD: 1.34,
-      HKD: 7.83, NOK: 10.53, KRW: 1329, TRY: 32.5, INR: 83.2, RUB: 92.5,
-      BRL: 4.98, ZAR: 18.76
-    };
-    
-    currencySymbols.forEach(s => {
-      currencyRates[s] = fallbackRates[s] || 1;
-    });
-    
+    const fallbackRates = {USD: 1, EUR: 0.92, GBP: 0.79, JPY: 149.5, AUD: 1.52, CAD: 1.36, CHF: 0.88, CNY: 7.24, SEK: 10.36, NZD: 1.63, MXN: 17.12, SGD: 1.34, HKD: 7.83, NOK: 10.53, KRW: 1329, TRY: 32.5, INR: 83.2, RUB: 92.5, BRL: 4.98, ZAR: 18.76};
+    currencySymbols.forEach(s => { currencyRates[s] = fallbackRates[s] || 1; });
     currencyReady = false;
     if (currencyStatusEl) {
       currencyStatusEl.textContent = '⚠️ Live rates unavailable - using approximate rates';
       currencyStatusEl.style.color = '#ff9800';
     }
-    console.warn('Using fallback exchange rates');
     return;
   }
   
@@ -107,14 +86,13 @@ async function fetchRates() {
   }
 }
 
-// Convert and update UI with formatting
 function convertCurrency() {
-  if (!currencyResultEl || !currencyFrom || !currencyTo) return;
+  if (!currencyResultEl || !currencyFromSelect || !currencyToSelect) return;
   
   const input = document.getElementById('currency-input').value;
   const val = Number(input);
-  const from = currencyFrom.value;
-  const to = currencyTo.value;
+  const fromCurr = currencyFromSelect.value;
+  const toCurr = currencyToSelect.value;
   
   if (input === '' || isNaN(val) || val < 0) {
     currencyResultEl.textContent = '';
@@ -122,7 +100,7 @@ function convertCurrency() {
     return;
   }
   
-  if (!currencyRates || !currencyRates[from] || !currencyRates[to]) {
+  if (!currencyRates || !currencyRates[fromCurr] || !currencyRates[toCurr]) {
     if (!currencyReady) {
       currencyResultEl.textContent = '⏳ Loading rates...';
       currencyResultEl.classList.add('show');
@@ -130,153 +108,100 @@ function convertCurrency() {
     }
   }
   
-  const fromRate = currencyRates[from] || 1;
-  const toRate = currencyRates[to] || 1;
+  const fromRate = currencyRates[fromCurr] || 1;
+  const toRate = currencyRates[toCurr] || 1;
   const result = (val / fromRate) * toRate;
+  const formatted = result.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 4});
   
-  // Format with proper decimal places and thousand separators
-  const formatted = result.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 4
-  });
-  
-  currencyResultEl.textContent = `${val} ${from} = ${formatted} ${to}`;
+  currencyResultEl.textContent = `${val} ${fromCurr} = ${formatted} ${toCurr}`;
   currencyResultEl.classList.add('show');
 }
 
-// Enhanced historical data with multiple timeframes
 async function fetchCurrencyHistory(timeframe = currentTimeframe) {
-  if (!currencyFrom || !currencyTo || !currencyChartEl || !currencyChartMessageEl) return;
+  if (!currencyFromSelect || !currencyToSelect || !currencyChartEl || !currencyChartMessageEl) return;
   
-  const from = currencyFrom.value;
-  const to = currencyTo.value;
-  if (!from || !to) return;
+  const fromCurr = currencyFromSelect.value;
+  const toCurr = currencyToSelect.value;
+  if (!fromCurr || !toCurr) return;
   
   currentTimeframe = timeframe;
-  
-  // Calculate date range based on timeframe
   const today = new Date();
-  let startDate, dataPoints, labelFormat;
+  let startDate, labelFormat;
   
   switch(timeframe) {
-    case '1W':
-      startDate = new Date(today);
-      startDate.setDate(today.getDate() - 7);
-      dataPoints = 7;
-      labelFormat = 'day';
-      break;
-    case '1M':
-      startDate = new Date(today);
-      startDate.setMonth(today.getMonth() - 1);
-      dataPoints = 30;
-      labelFormat = 'day';
-      break;
-    case '3M':
-      startDate = new Date(today);
-      startDate.setMonth(today.getMonth() - 3);
-      dataPoints = 12;
-      labelFormat = 'week';
-      break;
-    case '1Y':
-      startDate = new Date(today);
-      startDate.setFullYear(today.getFullYear() - 1);
-      dataPoints = 12;
-      labelFormat = 'month';
-      break;
-    case '5Y':
-      startDate = new Date(today);
-      startDate.setFullYear(today.getFullYear() - 5);
-      dataPoints = 5;
-      labelFormat = 'year';
-      break;
-    default:
-      startDate = new Date(today);
-      startDate.setFullYear(today.getFullYear() - 1);
-      dataPoints = 12;
-      labelFormat = 'month';
+    case '1W': startDate = new Date(today); startDate.setDate(today.getDate() - 7); labelFormat = 'day'; break;
+    case '1M': startDate = new Date(today); startDate.setMonth(today.getMonth() - 1); labelFormat = 'day'; break;
+    case '3M': startDate = new Date(today); startDate.setMonth(today.getMonth() - 3); labelFormat = 'week'; break;
+    case '1Y': startDate = new Date(today); startDate.setFullYear(today.getFullYear() - 1); labelFormat = 'month'; break;
+    case '5Y': startDate = new Date(today); startDate.setFullYear(today.getFullYear() - 5); labelFormat = 'year'; break;
+    default: startDate = new Date(today); startDate.setFullYear(today.getFullYear() - 1); labelFormat = 'month';
   }
   
   const start = startDate.toISOString().slice(0, 10);
   const end = today.toISOString().slice(0, 10);
-  
-  const url = `https://api.exchangerate.host/timeseries?start_date=${start}&end_date=${end}&base=${from}&symbols=${to}`;
+  const url = `https://api.exchangerate.host/timeseries?start_date=${start}&end_date=${end}&base=${fromCurr}&symbols=${toCurr}`;
   const data = await safeFetch(url, 15000);
   
   if (!data || !data.rates) {
-    renderCurrencyChart(null, from, to);
+    renderCurrencyChart(null, fromCurr, toCurr);
     return;
   }
   
-  // Process data based on format
   const labels = [];
   const values = [];
   const dates = Object.keys(data.rates).sort();
   
   if (labelFormat === 'day') {
-    // Show daily data
     dates.forEach(dateStr => {
       const date = new Date(dateStr);
       labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-      values.push(data.rates[dateStr][to] || null);
+      values.push(data.rates[dateStr][toCurr] || null);
     });
   } else if (labelFormat === 'week') {
-    // Sample weekly
     for (let i = 0; i < dates.length; i += 7) {
       const date = new Date(dates[i]);
       labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-      values.push(data.rates[dates[i]][to] || null);
+      values.push(data.rates[dates[i]][toCurr] || null);
     }
   } else if (labelFormat === 'month') {
-    // Sample monthly (first of each month)
     const monthlyData = {};
     dates.forEach(dateStr => {
-      const monthKey = dateStr.slice(0, 7); // YYYY-MM
-      if (!monthlyData[monthKey]) {
-        monthlyData[monthKey] = data.rates[dateStr][to];
-      }
+      const monthKey = dateStr.slice(0, 7);
+      if (!monthlyData[monthKey]) monthlyData[monthKey] = data.rates[dateStr][toCurr];
     });
-    
     Object.keys(monthlyData).sort().forEach(monthKey => {
       const date = new Date(monthKey + '-01');
       labels.push(date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' }));
       values.push(monthlyData[monthKey]);
     });
   } else if (labelFormat === 'year') {
-    // Sample yearly
     const yearlyData = {};
     dates.forEach(dateStr => {
       const year = dateStr.slice(0, 4);
-      if (!yearlyData[year]) {
-        yearlyData[year] = data.rates[dateStr][to];
-      }
+      if (!yearlyData[year]) yearlyData[year] = data.rates[dateStr][toCurr];
     });
-    
     Object.keys(yearlyData).sort().forEach(year => {
       labels.push(year);
       values.push(yearlyData[year]);
     });
   }
   
-  renderCurrencyChart({ labels, values }, from, to);
+  renderCurrencyChart({ labels, values }, fromCurr, toCurr);
 }
 
-function renderCurrencyChart(payload, from, to) {
+function renderCurrencyChart(payload, fromCurr, toCurr) {
   if (!currencyChartEl || !currencyChartMessageEl) return;
   
   if (!payload || !payload.labels || payload.labels.length === 0 || payload.values.every(v => v === null)) {
     currencyChartEl.style.display = 'none';
     currencyChartMessageEl.style.display = 'block';
     currencyChartMessageEl.textContent = '📊 Historical data unavailable';
-    if (currencyChart) { 
-      currencyChart.destroy(); 
-      currencyChart = null; 
-    }
+    if (currencyChart) { currencyChart.destroy(); currencyChart = null; }
     return;
   }
   
   currencyChartMessageEl.style.display = 'none';
   currencyChartEl.style.display = 'block';
-  
   const ctx = currencyChartEl.getContext('2d');
   
   if (currencyChart) {
@@ -284,7 +209,6 @@ function renderCurrencyChart(payload, from, to) {
     currencyChart = null;
   }
   
-  // Calculate min/max for better scaling
   const validValues = payload.values.filter(v => v !== null);
   const minVal = Math.min(...validValues);
   const maxVal = Math.max(...validValues);
@@ -296,7 +220,7 @@ function renderCurrencyChart(payload, from, to) {
     data: {
       labels: payload.labels,
       datasets: [{
-        label: `${to} per ${from}`,
+        label: `${toCurr} per ${fromCurr}`,
         data: payload.values,
         borderColor: '#2196F3',
         backgroundColor: 'rgba(33, 150, 243, 0.1)',
@@ -310,83 +234,35 @@ function renderCurrencyChart(payload, from, to) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      interaction: {
-        mode: 'index',
-        intersect: false,
-      },
+      interaction: {mode: 'index', intersect: false},
       plugins: {
-        legend: {
-          display: true,
-          position: 'top',
-          labels: {
-            color: getComputedStyle(document.body).getPropertyValue('--text-color'),
-            font: { size: 12 }
-          }
-        },
-        tooltip: {
-          mode: 'index',
-          intersect: false,
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          padding: 12,
-          callbacks: {
-            label: function(context) {
-              let label = context.dataset.label || '';
-              if (label) label += ': ';
-              if (context.parsed.y !== null) {
-                label += context.parsed.y.toFixed(4);
-              }
-              return label;
-            }
-          }
-        }
+        legend: {display: true, position: 'top', labels: {color: getComputedStyle(document.body).getPropertyValue('--text-color'), font: {size: 12}}},
+        tooltip: {mode: 'index', intersect: false, backgroundColor: 'rgba(0, 0, 0, 0.8)', padding: 12, callbacks: {label: function(context) {
+          let label = context.dataset.label || '';
+          if (label) label += ': ';
+          if (context.parsed.y !== null) label += context.parsed.y.toFixed(4);
+          return label;
+        }}}
       },
       scales: {
-        y: {
-          beginAtZero: false,
-          min: minVal - padding,
-          max: maxVal + padding,
-          ticks: {
-            color: getComputedStyle(document.body).getPropertyValue('--text-color'),
-            callback: function(value) {
-              return value.toFixed(4);
-            }
-          },
-          grid: {
-            color: 'rgba(128, 128, 128, 0.1)'
-          }
-        },
-        x: {
-          ticks: {
-            color: getComputedStyle(document.body).getPropertyValue('--text-color'),
-            maxRotation: 45,
-            minRotation: 0
-          },
-          grid: {
-            color: 'rgba(128, 128, 128, 0.1)'
-          }
-        }
+        y: {beginAtZero: false, min: minVal - padding, max: maxVal + padding, ticks: {color: getComputedStyle(document.body).getPropertyValue('--text-color'), callback: function(value) {return value.toFixed(4);}}, grid: {color: 'rgba(128, 128, 128, 0.1)'}},
+        x: {ticks: {color: getComputedStyle(document.body).getPropertyValue('--text-color'), maxRotation: 45, minRotation: 0}, grid: {color: 'rgba(128, 128, 128, 0.1)'}}
       }
     }
   });
 }
 
-// Add timeframe selector buttons dynamically
 function addTimeframeButtons() {
   const section = document.getElementById('currency');
   if (!section) return;
-  
   const chartContainer = section.querySelector('div[style*="max-width:700px"]');
-  if (!chartContainer) return;
-  
-  // Check if buttons already exist
-  if (chartContainer.querySelector('.timeframe-buttons')) return;
+  if (!chartContainer || chartContainer.querySelector('.timeframe-buttons')) return;
   
   const buttonContainer = document.createElement('div');
   buttonContainer.className = 'timeframe-buttons';
   buttonContainer.style.cssText = 'display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; justify-content: center;';
   
-  const timeframes = ['1W', '1M', '3M', '1Y', '5Y'];
-  timeframes.forEach(tf => {
+  ['1W', '1M', '3M', '1Y', '5Y'].forEach(tf => {
     const btn = document.createElement('button');
     btn.textContent = tf;
     btn.className = 'timeframe-btn';
@@ -404,7 +280,6 @@ function addTimeframeButtons() {
     }
     
     btn.addEventListener('click', () => {
-      // Update active state
       buttonContainer.querySelectorAll('button').forEach(b => {
         if (b === btn) {
           b.style.background = 'var(--accent)';
@@ -416,7 +291,6 @@ function addTimeframeButtons() {
           b.style.color = 'var(--accent)';
         }
       });
-      
       fetchCurrencyHistory(tf);
     });
     
@@ -426,11 +300,9 @@ function addTimeframeButtons() {
   chartContainer.insertBefore(buttonContainer, chartContainer.firstChild);
 }
 
-// Expose functions
 window.fetchCurrencyHistory = fetchCurrencyHistory;
 window.convertCurrency = convertCurrency;
 
-// Initialize
 fetchCurrencies().then(() => {
   convertCurrency();
   addTimeframeButtons();

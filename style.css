@@ -257,6 +257,8 @@ button.dark-toggle {
   background: var(--accent);
   font-size: 1.2rem;
   min-width: 50px;
+  max-width: 60px;
+  flex-shrink: 0;
 }
 
 /* Results */
@@ -421,8 +423,18 @@ button.dark-toggle {
     align-items: stretch;
   }
   
-  input, select, button {
+  .converter-card input,
+  .converter-card select,
+  .converter-card button:not(.dark-toggle) {
     width: 100%;
+  }
+  
+  input, select {
+    width: 100%;
+  }
+  
+  button:not(.dark-toggle) {
+    width: auto;
   }
   
   #calc-buttons {
@@ -431,6 +443,13 @@ button.dark-toggle {
   
   #calc-buttons button[style*="grid-column"] {
     grid-column: span 2 !important;
+  }
+  
+  /* Ensure formulas are visible on mobile */
+  #formulas-content {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 }
 
@@ -462,10 +481,13 @@ button.dark-toggle {
     font-size: 1.5rem;
   }
   
-  input, select, button {
+  .converter-card input,
+  .converter-card select,
+  .converter-card button:not(.dark-toggle) {
     padding: 1rem;
     font-size: 1.05rem;
     border-radius: 10px;
+    width: 100%;
   }
   
   header nav a {
@@ -492,6 +514,7 @@ button.dark-toggle {
     padding: 0.5rem 0.8rem;
     font-size: 1.1rem;
     min-width: 45px;
+    max-width: 50px;
   }
 }
 
@@ -499,6 +522,43 @@ button.dark-toggle {
 @media (min-width: 768px) and (max-width: 1024px) {
   .section {
     max-width: 750px;
+  }
+}
+
+/* Ensure buttons in converter cards don't go full width on mobile when they shouldn't */
+@media (max-width: 900px) {
+  .converter-card button {
+    width: auto;
+    min-width: 120px;
+  }
+  
+  .converter-card input,
+  .converter-card select {
+    width: 100%;
+  }
+  
+  /* UNIX converter specific layout fixes */
+  #unix .converter-card {
+    gap: 0.8rem;
+  }
+  
+  #unix .converter-card button {
+    flex: 1 1 auto;
+    min-width: 100px;
+  }
+  
+  #unix .converter-card label {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* Currency timeframe buttons on mobile */
+  .timeframe-buttons {
+    gap: 0.4rem !important;
+  }
+  
+  .timeframe-buttons button {
+    flex: 1 1 auto;
   }
 }
 
